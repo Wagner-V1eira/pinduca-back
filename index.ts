@@ -10,9 +10,6 @@ const app = express();
 const port = 3001
 
 app.use(express.json());
-
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'; 
-console.log(`[CORS] Configurando para permitir origem: ${frontendUrl}`);
 app.use(cors())
 
 app.use("/api/gibi", routesGibi);
