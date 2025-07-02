@@ -3,7 +3,6 @@ import { Router } from 'express'
 import { z } from 'zod'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-// import cors from 'cors'
 
 const prisma = new PrismaClient()
 const router = Router()
@@ -12,12 +11,6 @@ const loginSchema = z.object({
     email: z.string().email({ message: "Email inválido" }),
     senha: z.string().min(6, { message: "Senha deve possuir, no mínimo, 6 caracteres" }),
 })
-
-// router.use(cors({
-//     origin: 'http://localhost:3000', 
-//     methods: 'POST',              
-//     credentials: true,            
-// }));
 
 router.post("/", async (req, res) => {
     const valida = loginSchema.safeParse(req.body)

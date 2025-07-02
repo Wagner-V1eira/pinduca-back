@@ -7,7 +7,6 @@ import { Permission, getRolePermissions } from "../utils/permissions";
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Função para obter gibis por ano
 async function getGibisPorAno() {
   const result = await prisma.gibi.groupBy({
     by: ["ano"],
@@ -45,7 +44,7 @@ async function getTopGibis() {
     },
     orderBy: {
       reviews: {
-        _count: "desc", // Ordena pelo número de reviews
+        _count: "desc",
       },
     },
     take: 5,
@@ -68,27 +67,41 @@ async function getTopGibis() {
   return gibisComEstatisticas;
 }
 
-// Função para obter usuários mais ativos
 async function getUsuariosAtivos() {
-  const result = await prisma.usuario.findMany({
-    include: {
-      reviews: true,
+  const usuarios = await prisma.usuario.findMany({
+    take: 10,
+
+    select: {
+      nome: true,
+      _count: {
+        select: {
+          reviews: true 
+        }
+      }
     },
+
+    orderBy: {
+      reviews: {
+        _count: 'desc'
+      }
+    },
+    
+    where: {
+        reviews: {
+            some: {} 
+        }
+    }
   });
 
-  const usuariosComReviews = result
-    .map((usuario) => ({
-      nome: usuario.nome,
-      totalReviews: usuario.reviews.length,
-    }))
-    .filter((usuario) => usuario.totalReviews > 0)
-    .sort((a, b) => b.totalReviews - a.totalReviews)
-    .slice(0, 10);
+  
+  const formattedData = usuarios.map(usuario => ({
+    nome: usuario.nome,
+    totalReviews: usuario._count.reviews
+  }));
 
-  return usuariosComReviews;
+  return formattedData;
 }
 
-// Função para obter avaliações por mês (últimos 12 meses)
 async function getAvaliacoesPorMes() {
   const dozesMesesAtras = new Date();
   dozesMesesAtras.setMonth(dozesMesesAtras.getMonth() - 12);
@@ -141,7 +154,6 @@ async function getAvaliacoesPorMes() {
   return avaliacoesPorMes;
 }
 
-// Função para obter distribuição de avaliações
 async function getDistribuicaoAvaliacoes() {
   const result = await prisma.review.groupBy({
     by: ["avaliacao"],
@@ -159,7 +171,6 @@ async function getDistribuicaoAvaliacoes() {
   }));
 }
 
-// Função principal para obter todas as estatísticas do dashboard
 async function getDashboardStats() {
   try {
     const [
@@ -209,7 +220,6 @@ async function getDashboardStats() {
   }
 }
 
-// Rota GET /admin/dashboard
 router.get(
   "/admin/dashboard",
   authMiddleware,
@@ -222,7 +232,6 @@ router.get(
 
       const stats = await getDashboardStats();
 
-      // Adicionar informações sobre as permissões do usuário
       const userPermissions = getRolePermissions(req.user!.role);
 
       res.status(200).json({

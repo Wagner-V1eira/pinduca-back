@@ -242,21 +242,18 @@ router.delete(
         return res.status(404).json({ erro: "Review não encontrado." });
       }
 
-      // Usar a nova função de verificação de permissões
       if (!canDeleteReview(role, reviewExistente.usuarioId, usuarioId)) {
         return res
           .status(403)
           .json({ erro: "Você não tem permissão para deletar este review." });
       }
 
-      // Incluir informação sobre quem deletou (para logs/auditoria)
       const isAdminDeletion = reviewExistente.usuarioId !== usuarioId;
 
       await prisma.review.delete({
         where: { id: reviewId },
       });
 
-      // Log da operação para auditoria
       if (isAdminDeletion) {
         console.log(
           `Admin ${usuarioId} (${role}) deletou review ${reviewId} do usuário ${reviewExistente.usuarioId}`
@@ -267,8 +264,6 @@ router.delete(
         );
       }
 
-      // Sempre retornar 204 para manter compatibilidade com frontend
-      // Informações sobre admin deletion podem ser obtidas via logs ou outras rotas se necessário
       res.status(204).send();
     } catch (error) {
       console.error("Erro ao deletar review:", error);

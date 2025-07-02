@@ -2,9 +2,6 @@ import { Response, NextFunction } from "express";
 import { RequestWithAuth } from "./authMiddleware";
 import { Permission, hasPermission, isAdmin } from "../utils/permissions";
 
-/**
- * Middleware para verificar se o usuário tem uma permissão específica
- */
 export function requirePermission(permission: Permission) {
   return (req: RequestWithAuth, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -22,9 +19,6 @@ export function requirePermission(permission: Permission) {
   };
 }
 
-/**
- * Middleware para verificar se o usuário tem acesso administrativo (qualquer tipo)
- */
 export function requireAdmin(
   req: RequestWithAuth,
   res: Response,
@@ -43,9 +37,6 @@ export function requireAdmin(
   next();
 }
 
-/**
- * Middleware para verificar se o usuário é administrador principal
- */
 export function requireMainAdmin(
   req: RequestWithAuth,
   res: Response,

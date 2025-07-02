@@ -303,7 +303,6 @@ router.delete(
   }
 );
 
-// Rota para atualizar role de usuário (apenas admin principal)
 router.patch(
   "/:id/role",
   authMiddleware,
@@ -326,7 +325,6 @@ router.patch(
     const { role } = valida.data;
     const adminId = req.user!.userId;
 
-    // Não permitir que admin mude seu próprio role
     if (adminId === numericId) {
       return res
         .status(403)
