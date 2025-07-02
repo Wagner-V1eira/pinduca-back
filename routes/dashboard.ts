@@ -1,23 +1,11 @@
 import express, { Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import authMiddleware, { RequestWithAuth } from "../middleware/authMiddleware";
+import { requirePermission } from "../middleware/permissionMiddleware";
+import { Permission, getRolePermissions } from "../utils/permissions";
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-// Middleware específico para verificar se o usuário é ADMIN
-const authAdmin = (req: RequestWithAuth, res: Response, next: Function) => {
-  if (!req.user) {
-    return res.status(401).json({ erro: "Token de acesso não fornecido" });
-  }
-  if (req.user.role !== "ADMIN") {
-    return res.status(403).json({
-      erro: "Acesso negado. Apenas administradores podem acessar este recurso",
-    });
-  }
-
-  next();
-};
 
 // Função para obter gibis por ano
 async function getGibisPorAno() {
@@ -225,16 +213,26 @@ async function getDashboardStats() {
 router.get(
   "/admin/dashboard",
   authMiddleware,
-  authAdmin,
+  requirePermission(Permission.DASHBOARD_ACCESS),
   async (req: RequestWithAuth, res: Response) => {
     try {
       console.log(
-        `Dashboard Admin: Usuário ${req.user?.userId} acessou o dashboard`
+        `Dashboard Admin: Usuário ${req.user?.userId} (${req.user?.role}) acessou o dashboard`
       );
 
       const stats = await getDashboardStats();
 
-      res.status(200).json(stats);
+      // Adicionar informações sobre as permissões do usuário
+      const userPermissions = getRolePermissions(req.user!.role);
+
+      res.status(200).json({
+        ...stats,
+        userInfo: {
+          userId: req.user!.userId,
+          role: req.user!.role,
+          permissions: userPermissions,
+        },
+      });
     } catch (error) {
       console.error("Erro ao gerar estatísticas do dashboard:", error);
       res.status(500).json({

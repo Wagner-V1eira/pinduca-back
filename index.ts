@@ -6,6 +6,7 @@ import routesLogin from "./routes/login";
 import authRouter from "./routes/auth";
 import routesReview from "./routes/review";
 import routesDashboard from "./routes/dashboard";
+import routesPermissions from "./routes/permissions";
 
 const app = express();
 const port = 3001;
@@ -18,6 +19,7 @@ app.use("/api/usuario", routesUsuario);
 app.use("/api/review", routesReview);
 app.use("/api/login", routesLogin);
 app.use("/api/auth", authRouter);
+app.use("/api/permissions", routesPermissions);
 app.use("/api", routesDashboard);
 
 app.get("/api", (req, res) => {

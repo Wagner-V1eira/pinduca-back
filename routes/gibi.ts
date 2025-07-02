@@ -2,6 +2,7 @@ import { PrismaClient, Role } from "@prisma/client";
 import { Router, Response } from "express";
 import { z } from "zod";
 import authMiddleware, { RequestWithAuth } from "../middleware/authMiddleware";
+import { canManageGibi } from "../utils/permissions";
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -195,8 +196,13 @@ router.put(
           .json({ erro: "Não é possível editar um gibi excluído." });
 
       const isOwner = gibiExistente.usuarioId === usuarioIdLogado;
-      const isAdmin = roleUsuarioLogado === Role.ADMIN;
-      if (!isOwner && !isAdmin) {
+      const canManage = canManageGibi(
+        roleUsuarioLogado!,
+        gibiExistente.usuarioId,
+        usuarioIdLogado
+      );
+
+      if (!canManage) {
         return res
           .status(403)
           .json({ erro: "Permissão negada para editar este gibi." });
@@ -251,9 +257,13 @@ router.delete(
       if (gibiExistente.excluido) return res.status(204).send();
 
       const isOwner = gibiExistente.usuarioId === usuarioIdLogado;
-      const isAdmin = roleUsuarioLogado === Role.ADMIN;
+      const canManage = canManageGibi(
+        roleUsuarioLogado!,
+        gibiExistente.usuarioId,
+        usuarioIdLogado
+      );
 
-      if (!isOwner && !isAdmin) {
+      if (!canManage) {
         return res
           .status(403)
           .json({ erro: "Permissão negada para excluir este gibi." });
